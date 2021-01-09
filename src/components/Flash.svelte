@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
 
     // Props
     export let data = [];
@@ -33,6 +33,24 @@
         return order;
     }
 
+    const keyAction = e => {
+        if(flashing && (e.keyCode === 82 || e.keyCode === 75 || e.keyCode === 76)){
+            e.preventDefault();
+            if (e.keyCode === 82) {
+                // R Key
+                set(data);
+            }
+            else if (e.keyCode === 75) {
+                // K Key
+                forgotten = true;
+            }
+            else if (e.keyCode === 	76) {
+                // L key
+                next();
+            }
+        }
+    }
+
     // Logic
     let order = [];
     let current = 0;
@@ -51,7 +69,11 @@
 
     onMount(() => {
         window.scrollTo(0,document.body.scrollHeight);
+        window.addEventListener('keydown', keyAction);
     });
+    onDestroy(() => {
+        window.removeEventListener('keydown', keyAction);
+    })
 </script>
 
 {#if !flashing}
@@ -116,6 +138,7 @@
         width: 200px;
         max-width: 30vw;
     }
+
 
     .card {
         padding: 10%;
