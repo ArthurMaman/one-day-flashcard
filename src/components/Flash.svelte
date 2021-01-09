@@ -1,31 +1,53 @@
 <script>
     import { onMount } from 'svelte';
 
+    // Props
     export let data = [];
-    export let titles;
+    export let titles
+
+    // State
     let flashing = false;
-    let current = Math.floor(Math.random() * data.length);
-    let last = current;
     let forgotten = false;
     let chosen = [];
 
+    // Actions
     const next = () => {
         forgotten = false;
-        let newIndex = Math.floor(Math.random() * data.length);
-        if(data.length > 3){
-            while (newIndex === current || newIndex === last){
-                newIndex = Math.floor(Math.random() * data.length);
-            }
-        }
-        last = current;
-        current = newIndex;
+        current ++;
     }
 
-    const reset = () => {
+    const set = data => {
         forgotten = false;
         flashing = false;
+        order = createCardOrder(data.length);
+        current = 0;
     }
 
+    const createCardOrder = length => {
+        const randomSort = (_, __) => 0.5 - Math.random();
+        let order = [];
+        for(let i = 0; i < length; i++){
+            order.push(i)
+        }
+        order.sort(randomSort);
+        return order;
+    }
+
+    // Logic
+    let order = [];
+    let current = 0;
+    $: set(data);
+
+    $: if(data.length > 5){
+        if(current > 3 * data.length / 4) {
+            order = createCardOrder(data.length);
+            current = 0;
+        }
+    } else {
+        if(current >= data.length){
+            current = 0;
+        }
+    }
 
     onMount(() => {
         window.scrollTo(0,document.body.scrollHeight);
@@ -47,22 +69,22 @@
     <div class="card">
         {#if !forgotten}
             {#each chosen as choice}
-                <p>{data[current][choice]}</p>
+                <p>{data[order[current]][choice]}</p>
             {/each}
         {:else}
             {#each titles as choice}
-                <p class="forgotten">{data[current][choice]}</p>
+                <p class="forgotten">{data[order[current]][choice]}</p>
             {/each}
         {/if}
     </div>
     <div class="capsule">
         <div>
             {#if !forgotten}
-                <button class="form-card__button blue" on:click={reset}>Reset</button>
+                <button class="form-card__button blue" on:click={() => set(data)}>Reset</button>
                 <button class="form-card__button blue" on:click={()=>forgotten = true}>Check</button>
                 <button class="form-card__button green"  on:click={next}>Got it !</button>
             {:else}
-                <button class="form-card__button blue" on:click={reset}>Reset</button>
+                <button class="form-card__button blue" on:click={() => set(data)}>Reset</button>
                 <button class="form-card__button blue" on:click={next}>Next</button>
             {/if}
         </div>
